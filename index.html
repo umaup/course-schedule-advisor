@@ -64,16 +64,14 @@
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
             border: 2px solid #3b82f6;
         }
-        /* --- NEW: 請假日的樣式 --- */
         .leave-day {
             background-color: #fef9c3 !important; /* 淺黃色背景 */
             color: #713f12 !important; /* 深黃色文字 */
             border: 2px dashed #facc15; /* 黃色虛線邊框 */
         }
         .leave-day .day-number {
-            text-decoration: none; /* 如果請假日是過去的日期，取消刪除線 */
+            text-decoration: none;
         }
-        /* 已上課日期的樣式 */
         .past-day {
             opacity: 0.6;
         }
@@ -92,7 +90,7 @@
             bottom: 105%;
             left: 50%;
             transform: translateX(-50%);
-            white-space: normal; /* Allow wrapping */
+            white-space: normal;
             width: max-content;
             max-width: 200px;
             font-size: 0.8rem;
@@ -126,78 +124,21 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- 友善列印樣式 (橫向) --- */
         @media print {
-            body {
-                background-color: #ffffff !important;
-                padding: 1cm; /* 給予頁面一些邊界 */
-                font-size: 9pt; /* 縮小整體字體 */
-            }
-            /* 隱藏不需要列印的元素 */
-            .no-print, #course-selection-list, #info-panel, #modal-overlay, #ai-advisor-controls, #print-instruction, #leave-info-panel {
-                display: none !important;
-            }
-            .max-w-7xl {
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            .bg-white.rounded-xl.shadow-lg {
-                box-shadow: none !important;
-                border-bottom: 2px solid #ccc;
-                border-radius: 0;
-                padding: 0 0 1rem 0;
-            }
-            /* 將月曆改為 flex 排列，以實現多欄 */
-            .calendar-grid {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                justify-content: space-between;
-                gap: 1rem;
-            }
-            .month-container {
-                flex: 0 0 32%; /* 設定每個月份容器的寬度，使其在一行中容納三個 */
-                box-sizing: border-box;
-                box-shadow: none !important;
-                border: 1px solid #ddd;
-                padding: 0.5rem;
-                page-break-inside: avoid; /* 避免月份中間被切斷 */
-            }
-            .month-container h2 {
-                font-size: 11pt;
-                margin-bottom: 0.5rem;
-            }
-            .day-grid {
-                gap: 2px;
-            }
-            .day-header {
-                font-size: 7pt;
-                padding-bottom: 0.25rem;
-            }
-            .day-cell {
-                padding-bottom: 0 !important; /* 移除長寬比 */
-                position: static;
-            }
-            .day-content {
-                position: static;
-                width: 100%;
-                height: 25px; /* 設定固定高度 */
-                border: 1px solid #eee;
-                color: black !important; /* 確保無課程日期的文字是黑色 */
-                font-size: 8pt;
-            }
-            .class-day {
-                color: white !important; /* 確保日期數字在彩色背景上是白色 */
-                font-weight: bold;
-                -webkit-print-color-adjust: exact !important; /* 強制列印背景色 */
-                color-adjust: exact !important;
-            }
-             .leave-day {
-                border: 1px solid #ddd !important;
-            }
-            .tooltip {
-                display: none !important; /* 列印時隱藏提示 */
-            }
+            body { background-color: #ffffff !important; padding: 1cm; font-size: 9pt; }
+            .no-print, #course-selection-list, #info-panel, #modal-overlay, #ai-advisor-controls, #print-instruction, #leave-info-panel { display: none !important; }
+            .max-w-7xl { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            .bg-white.rounded-xl.shadow-lg { box-shadow: none !important; border-bottom: 2px solid #ccc; border-radius: 0; padding: 0 0 1rem 0; }
+            .calendar-grid { display: flex !important; flex-wrap: wrap !important; justify-content: space-between; gap: 1rem; }
+            .month-container { flex: 0 0 32%; box-sizing: border-box; box-shadow: none !important; border: 1px solid #ddd; padding: 0.5rem; page-break-inside: avoid; }
+            .month-container h2 { font-size: 11pt; margin-bottom: 0.5rem; }
+            .day-grid { gap: 2px; }
+            .day-header { font-size: 7pt; padding-bottom: 0.25rem; }
+            .day-cell { padding-bottom: 0 !important; position: static; }
+            .day-content { position: static; width: 100%; height: 25px; border: 1px solid #eee; color: black !important; font-size: 8pt; }
+            .class-day { color: white !important; font-weight: bold; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+            .leave-day { border: 1px solid #ddd !important; }
+            .tooltip { display: none !important; }
         }
     </style>
 </head>
@@ -211,8 +152,7 @@
             <div id="print-instruction" class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md mb-4" role="alert">
                 <p><strong class="font-bold">🖨️ 列印提示：</strong>請使用快捷鍵 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd>+<kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">P</kbd> (Mac: <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Cmd</kbd>+<kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">P</kbd>)。在預覽中將<strong>版面設定為「橫向」</strong>，可將三個月並排列印。</p>
             </div>
-
-            <!-- MODIFIED: Leave Calculation & Warning -->
+            
             <div id="leave-info-panel" class="hidden bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-md mb-4 no-print">
                 <p class="font-bold">💡 請假時數提醒</p>
                 <div id="leave-message" class="text-sm mt-2 space-y-3"></div>
@@ -259,22 +199,33 @@
     </div>
 
     <script>
+        // --- 課程資料 ---
         const courses = [
             { id: "c1", name: "AI智慧繪圖設計與AIGC媒體設計班第01期", teacher: "陳瑜芳老師", start: "114/07/18", end: "114/08/29", specificDates: ["114/07/18", "114/07/23", "114/07/25", "114/07/30", "114/08/01", "114/08/06", "114/08/08", "114/08/15", "114/08/20", "114/08/22", "114/08/29"], time: "18:30~21:30", color: "#38bdf8", address: "70101臺南市東區大學路1號成功校區(成功大學資訊工程系2樓(65203電腦教室))", capacity: "23人", hours: 36 },
             { id: "c3", name: "AI Agent智能助理開發實作班第01期", teacher: "馬恩奇老師", start: "114/08/24", end: "114/09/28", days: ["Sunday"], time: "09:00~12:00, 13:00~17:00", color: "#fb923c", address: "700002臺南市中西區中正路240號六樓(王者會議室)", capacity: "20人", hours: 42 },
             { id: "c4", name: "商務日語會話實務班第01期", teacher: "林佩樺老師、山本弘幸老師", start: "114/09/18", end: "114/12/18", days: ["Thursday"], time: "18:30~21:30", color: "#a78bfa", address: "70143臺南市東區長榮路一段225號B1(樹德科技大學台南分部(B教室))", capacity: "20人", hours: 42 },
             { id: "c7", name: "職場情境日語與文法應用班第02期", teacher: "陳昭芬老師", start: "114/09/06", end: "114/12/27", days: ["Saturday"], time: "09:00~12:00", color: "#6366f1", address: "70047臺南市中西區大埔街50號2樓(台南市總工會2樓會議室)", capacity: "20人", hours: 45 },
-            { id: "c8", name: "生成式AI與Canva創意設計班第01期", teacher: "顏啟峰老師", start: "115/03/18", end: "115/04/29", specificDates: ["115/03/18", "115/03/23", "115/03/25", "115/03/30", "115/04/01", "115/04/08", "115/04/10", "115/04/13", "115/04/15", "115/04/17", "115/04/20", "115/04/22", "115/04/27", "115/04/29"], time: "18:30~21:30", color: "#f472b6", address: "71089臺南市永康區中山路94巷1-3號3樓(B3PC教室)", capacity: "20人", hours: 42 }
+            { 
+                id: "c8", 
+                name: "生成式AI與Canva創意設計班第01期", 
+                teacher: "顏啟峰老師", 
+                start: "115/03/18", 
+                end: "115/04/29", 
+                specificDates: ["115/03/18", "115/03/23", "115/03/25", "115/03/30", "115/04/01", "115/04/08", "115/04/10", "115/04/13", "115/04/15", "115/04/17", "115/04/20", "115/04/22", "115/04/27", "115/04/29"],
+                time: "18:30~21:30", 
+                color: "#f472b6", 
+                address: "71089臺南市永康區中山路94巷1-3號3樓(B3PC教室)", 
+                capacity: "20人", 
+                hours: 42 
+            }
         ];
-
-        // --- NEW: 請假資料 ---
-        // key 是課程 ID，value 是民國年格式的日期陣列
+        
         const leaveData = {
-            "c7": ["114/09/13"], // 職場情境日語 (週六)
-            "c3": ["114/09/14"], // AI Agent (週日) - 只是範例，您可以自行增減
+            "c7": ["114/09/13"], "c3": ["114/09/14"],
         };
 
         const weekDayHeaders = ['日', '一', '二', '三', '四', '五', '六'];
+        const dayOfWeekMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
         function rocToDate(rocDateStr) {
             const [year, month, day] = rocDateStr.split('/').map(Number);
@@ -315,21 +266,23 @@
         function buildClassSchedule() {
             classSchedule = {};
             courses.forEach(course => {
-                const processDate = (date) => {
-                    const dateString = date.toISOString().split('T')[0];
-                    if (!classSchedule[dateString]) classSchedule[dateString] = [];
-                    classSchedule[dateString].push(course);
-                };
                 if (course.specificDates) {
-                    course.specificDates.forEach(dateStr => processDate(rocToDate(dateStr)));
+                    course.specificDates.forEach(dateStr => {
+                        const date = rocToDate(dateStr);
+                        const dateString = date.toISOString().split('T')[0];
+                        if (!classSchedule[dateString]) classSchedule[dateString] = [];
+                        classSchedule[dateString].push(course);
+                    });
                 } else {
-                    let currentDate = rocToDate(course.start);
+                    const courseStart = rocToDate(course.start);
                     const courseEnd = rocToDate(course.end);
-                    const courseDays = course.days.map(d => d.toLowerCase());
+                    let currentDate = new Date(courseStart);
                     while (currentDate <= courseEnd) {
-                        const dayName = currentDate.toLocaleString('en-US', { weekday: 'long' }).toLowerCase();
-                        if (courseDays.includes(dayName)) {
-                            processDate(new Date(currentDate));
+                        const dayName = currentDate.toLocaleString('en-US', { weekday: 'long' });
+                        if (course.days.includes(dayName)) {
+                            const dateString = currentDate.toISOString().split('T')[0];
+                            if (!classSchedule[dateString]) classSchedule[dateString] = [];
+                            classSchedule[dateString].push(course);
                         }
                         currentDate.setDate(currentDate.getDate() + 1);
                     }
@@ -352,59 +305,51 @@
             today.setHours(0, 0, 0, 0);
 
             calendarViewEl.innerHTML = '';
-            const allDates = courses.flatMap(c => c.specificDates ? c.specificDates.map(d => rocToDate(d)) : [rocToDate(c.start), rocToDate(c.end)]);
+            const allDates = courses.flatMap(c => {
+                if (c.specificDates) return c.specificDates.map(d => rocToDate(d));
+                return [rocToDate(c.start), rocToDate(c.end)];
+            });
+
             if (allDates.length === 0) return;
 
-            const startDate = rocToDate("114/09/01");
+            const startDate = new Date(Math.min.apply(null, allDates));
+            startDate.setDate(1);
             const endDate = new Date(Math.max.apply(null, allDates));
 
             let currentMonthDate = new Date(startDate);
             while (currentMonthDate <= endDate) {
                 const year = currentMonthDate.getFullYear();
                 const month = currentMonthDate.getMonth();
-                
                 const monthContainer = document.createElement('div');
                 monthContainer.className = 'month-container';
                 
-                let monthHTML = `
-                    <h2 class="text-lg sm:text-xl font-bold text-center text-gray-800 mb-4">${year}年 ${month + 1}月</h2>
+                let monthHTML = `<h2 class="text-lg sm:text-xl font-bold text-center text-gray-800 mb-4">${year}年 ${month + 1}月</h2>
                     <div class="day-grid mb-2">${weekDayHeaders.map(day => `<div class="day-header">${day}</div>`).join('')}</div>
                     <div class="day-grid">`;
                 
                 const firstDayOfMonth = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-
                 monthHTML += `<div></div>`.repeat(firstDayOfMonth);
 
-                for (let i = 1; i <= daysInMonth; i++) {
+                for (let i = 1; i <= new Date(year, month + 1, 0).getDate(); i++) {
                     const date = new Date(year, month, i);
                     const dateString = date.toISOString().split('T')[0];
-                    const scheduledClasses = classSchedule[dateString];
+                    const scheduledClasses = classSchedule[dateString] || [];
+                    const isLeaveDay = scheduledClasses.some(c => getLeaveDatesForCourse(c.id).includes(dateString));
                     
                     let dayHTML = '<div class="day-cell">';
-                    if (scheduledClasses?.length > 0) {
-                        let isLeaveDay = scheduledClasses.some(c => getLeaveDatesForCourse(c.id).includes(dateString));
-                        let backgroundStyle = '';
-                        let tooltipText = scheduledClasses.map(c => {
-                             const courseLeaveDates = getLeaveDatesForCourse(c.id);
-                             return c.name.split('第')[0] + (courseLeaveDates.includes(dateString) ? ' (已請假)' : '');
-                        }).join('<br>');
+                    if (scheduledClasses.length > 0) {
+                        let backgroundStyle = '', finalClasses = ['day-content', 'class-day'], tooltipText = [];
+                        if (isLeaveDay) finalClasses.push('leave-day');
+                        if (date < today) finalClasses.push('past-day');
                         
-                        if (scheduledClasses.length === 1) {
-                            backgroundStyle = `background-color: ${scheduledClasses[0].color};`;
-                        } else {
-                            const colors = scheduledClasses.map(c => c.color).slice(0, 2);
-                            backgroundStyle = colors.length > 1 ? `background: linear-gradient(135deg, ${colors[0]} 50%, ${colors[1]} 50%);` : `background-color: ${colors[0]};`;
-                        }
+                        if (scheduledClasses.length === 1) backgroundStyle = `background-color: ${scheduledClasses[0].color};`;
+                        else backgroundStyle = `background: linear-gradient(135deg, ${scheduledClasses[0].color} 50%, ${scheduledClasses[1].color} 50%);`;
                         
-                        const dayClasses = ['day-content', 'class-day'];
-                        if (isLeaveDay) dayClasses.push('leave-day');
-                        if (date < today) dayClasses.push('past-day');
-
-                        dayHTML += `
-                            <div class="${dayClasses.join(' ')}" style="${backgroundStyle}" data-date="${dateString}">
+                        tooltipText = scheduledClasses.map(c => c.name.split('第')[0]);
+                        
+                        dayHTML += `<div class="${finalClasses.join(' ')}" style="${backgroundStyle}" data-date="${dateString}">
                                 <span class="day-number">${i}</span>
-                                <div class="tooltip">${tooltipText}</div>
+                                <div class="tooltip">${tooltipText.join('<br>')}</div>
                             </div>`;
                     } else {
                         dayHTML += `<div class="day-content"><span class="day-number">${i}</span></div>`;
@@ -440,12 +385,12 @@
         }
         
         function calculateSessionHours(timeStr) {
-            return timeStr.split(',').reduce((total, interval) => {
+             return timeStr.split(',').reduce((total, interval) => {
                 const [start, end] = interval.trim().split('~').map(t => {
                     const [h, m] = t.split(':').map(Number);
                     return h + m / 60;
                 });
-                return total + (end - start);
+                return total + (Math.abs(end - start));
             }, 0);
         }
 
@@ -457,7 +402,6 @@
             updateLeaveInfo();
         }
 
-        // --- MODIFIED: 更新請假資訊面板，顯示更詳細的資訊 ---
         function updateLeaveInfo() {
             if (selectedCourses.size === 0) {
                 leaveInfoPanelEl.classList.add('hidden');
@@ -483,32 +427,17 @@
                     <div class="p-2 ${isOverLimit ? 'bg-red-50 rounded-md' : ''}">
                         <p class="font-semibold text-gray-800">${course.name.split('第')[0]}</p>
                         <div class="grid grid-cols-3 gap-2 text-center mt-1.5">
-                            <div>
-                                <span class="text-xs text-gray-500">時數上限</span>
-                                <p class="font-bold text-blue-600">${maxLeaveHours.toFixed(1)}</p>
-                            </div>
-                            <div>
-                                <span class="text-xs text-gray-500">已請假</span>
-                                <p class="font-bold ${isOverLimit ? 'text-red-600' : 'text-gray-800'}">${totalLeaveHours.toFixed(1)}</p>
-                            </div>
-                            <div>
-                                <span class="text-xs text-gray-500">剩餘</span>
-                                <p class="font-bold ${remainingLeaveHours < 0 ? 'text-red-600' : 'text-green-600'}">${remainingLeaveHours.toFixed(1)}</p>
-                            </div>
+                            <div><span class="text-xs text-gray-500">時數上限</span><p class="font-bold text-blue-600">${maxLeaveHours.toFixed(1)}</p></div>
+                            <div><span class="text-xs text-gray-500">已請假</span><p class="font-bold ${isOverLimit ? 'text-red-600' : 'text-gray-800'}">${totalLeaveHours.toFixed(1)}</p></div>
+                            <div><span class="text-xs text-gray-500">剩餘</span><p class="font-bold ${remainingLeaveHours < 0 ? 'text-red-600' : 'text-green-600'}">${remainingLeaveHours.toFixed(1)}</p></div>
                         </div>
                         ${isOverLimit ? `<p class="text-red-600 text-xs mt-2 text-center font-semibold">⚠️ 已超過請假時數上限！</p>` : ''}
-                    </div>
-                `);
+                    </div>`);
             });
 
-            if (hasLeave) {
-                leaveMessageEl.innerHTML = messages.join('');
-                leaveInfoPanelEl.classList.remove('hidden');
-            } else {
-                leaveInfoPanelEl.classList.add('hidden');
-            }
+            leaveMessageEl.innerHTML = messages.join('');
+            leaveInfoPanelEl.classList.toggle('hidden', !hasLeave);
         }
-
 
         function parseTime(timeStr) {
             return timeStr.split(',').map(interval => {
@@ -527,36 +456,30 @@
             let conflictDetails = '';
 
             selectedCourseObjects.forEach(course => {
-                const timeIntervals = parseTime(course.time);
                 Object.keys(classSchedule).forEach(dateString => {
                     if (classSchedule[dateString].some(c => c.id === course.id)) {
                         if (!dailySchedule[dateString]) dailySchedule[dateString] = [];
-                        timeIntervals.forEach(interval => {
-                            dailySchedule[dateString].push({ ...interval, courseName: course.name });
-                        });
+                        const timeIntervals = parseTime(course.time);
+                        timeIntervals.forEach(interval => dailySchedule[dateString].push({ ...interval, courseName: course.name }));
                     }
                 });
             });
 
             for (const date in dailySchedule) {
                 const dayEvents = dailySchedule[date].sort((a, b) => a.start - b.start);
-                if (dayEvents.length < 2) continue;
                 for (let i = 0; i < dayEvents.length - 1; i++) {
                     if (dayEvents[i].end > dayEvents[i+1].start) {
                         conflictFound = true;
-                        const conflictDate = new Date(date).toLocaleDateString('zh-Hant');
-                        conflictDetails = `於 ${conflictDate}，課程 "${dayEvents[i].courseName.split('第')[0]}" 與 "${dayEvents[i+1].courseName.split('第')[0]}" 時間重疊。`;
+                        conflictDetails = `於 ${new Date(date).toLocaleDateString('zh-Hant')}，課程 "${dayEvents[i].courseName.split('第')[0]}" 與 "${dayEvents[i+1].courseName.split('第')[0]}" 時間重疊。`;
                         break;
                     }
                 }
                 if (conflictFound) break;
             }
-
             conflictMessageEl.textContent = conflictDetails;
             conflictWarningEl.classList.toggle('hidden', !conflictFound);
         }
 
-        // --- MODIFIED: 在課程詳細資訊中顯示更詳細的請假資訊 ---
         function showInfoPanel(dateString, dayElement) {
             if (lastSelectedDay) lastSelectedDay.classList.remove('day-selected');
             dayElement.classList.add('day-selected');
@@ -570,44 +493,29 @@
             classes.forEach(course => {
                 const isLeave = getLeaveDatesForCourse(course.id).includes(dateString);
                 let leaveInfoHTML = '';
-
                 if (isLeave) {
                     const sessionHours = calculateSessionHours(course.time);
-                    const courseLeaveDates = leaveData[course.id] || [];
-                    const totalLeaveHours = courseLeaveDates.length * sessionHours;
+                    const totalLeaveHours = (leaveData[course.id] || []).length * sessionHours;
                     const maxLeaveHours = course.hours / 5;
                     const remainingLeaveHours = maxLeaveHours - totalLeaveHours;
-
-                    leaveInfoHTML = `
-                        <div class="mt-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded-md text-sm">
-                            <p class="font-bold mb-2 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                                請假時數說明
-                            </p>
-                            <div class="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
-                                <span>時數上限:</span> <span class="font-semibold text-blue-700">${maxLeaveHours.toFixed(1)} 小時</span>
-                                <span>本次請假:</span> <span class="font-semibold">${sessionHours.toFixed(1)} 小時</span>
-                                <span>累計請假:</span> <span class="font-semibold ${totalLeaveHours > maxLeaveHours ? 'text-red-600' : ''}">${totalLeaveHours.toFixed(1)} 小時</span>
-                                <span>剩餘時數:</span> <span class="font-bold ${remainingLeaveHours < 0 ? 'text-red-600' : 'text-green-700'}">${remainingLeaveHours.toFixed(1)} 小時</span>
-                            </div>
-                        </div>
-                    `;
+                    leaveInfoHTML = `<div class="mt-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded-md text-sm space-y-1">
+                            <p class="font-bold flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>請假時數說明</p>
+                            <p>時數上限: <span class="font-semibold text-blue-700">${maxLeaveHours.toFixed(1)} 小時</span></p>
+                            <p>本次請假: <span class="font-semibold">${sessionHours.toFixed(1)} 小時</span></p>
+                            <p>累計請假: <span class="font-semibold ${totalLeaveHours > maxLeaveHours ? 'text-red-600' : ''}">${totalLeaveHours.toFixed(1)} 小時</span></p>
+                            <p>剩餘時數: <span class="font-bold ${remainingLeaveHours < 0 ? 'text-red-600' : 'text-green-700'}">${remainingLeaveHours.toFixed(1)} 小時</span></p>
+                        </div>`;
                 }
-                
                 contentHTML += `
                     <div class="border-l-4 p-4 rounded-r-lg mb-3" style="border-color: ${course.color}; background-color: ${course.color}1A;">
-                        <p class="font-bold text-gray-900 flex items-center">
-                          ${course.name}
-                          ${isLeave ? '<span class="ml-2 bg-yellow-200 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">已請假</span>' : ''}
-                        </p>
+                        <p class="font-bold text-gray-900 flex items-center">${course.name}${isLeave ? '<span class="ml-2 bg-yellow-200 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">已請假</span>' : ''}</p>
                         <div class="mt-2 text-sm text-gray-700 space-y-1">
                             <p><strong class="font-semibold">上課時間：</strong>${course.time}</p>
                             <p><strong class="font-semibold">授課老師：</strong>${course.teacher}</p>
                             <p><strong class="font-semibold">上課地址：</strong>${course.address}</p>
                         </div>
                         ${leaveInfoHTML}
-                    </div>
-                `;
+                    </div>`;
             });
             infoPanelContent.innerHTML = contentHTML;
             infoPanel.classList.remove('hidden');
@@ -618,10 +526,7 @@
         }
 
         function hideInfoPanel() {
-            if (lastSelectedDay) {
-                lastSelectedDay.classList.remove('day-selected');
-                lastSelectedDay = null;
-            }
+            if (lastSelectedDay) { lastSelectedDay.classList.remove('day-selected'); lastSelectedDay = null; }
             infoPanel.classList.add('opacity-0', '-translate-y-4');
             setTimeout(() => infoPanel.classList.add('hidden'), 300);
         }
@@ -645,12 +550,8 @@
                 try {
                     const response = await fetch(url, options);
                     if (response.ok) return response;
-                    if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-                        throw new Error(`API 請求失敗，狀態碼：${response.status}`);
-                    }
-                } catch (error) {
-                    if (attempt === maxRetries - 1) throw error;
-                }
+                    if (response.status >= 400 && response.status < 500 && response.status !== 429) throw new Error(`API 請求失敗，狀態碼：${response.status}`);
+                } catch (error) { if (attempt === maxRetries - 1) throw error; }
                 await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(2, attempt)));
             }
             throw new Error('API 請求重試多次後仍然失敗。');
@@ -661,47 +562,31 @@
             loader.classList.remove('hidden');
             aiResponse.classList.add('hidden');
             aiResponse.innerHTML = '';
-
             const selectedCourseDetails = Array.from(selectedCourses).map(id => courses.find(c => c.id === id));
             const prompt = `您是一位專業的職涯發展與學習顧問。請根據使用者選擇的以下課程，為他們提供一份綜合的學習路徑建議。
-
 選擇的課程列表：
 ${selectedCourseDetails.map(c => `- **${c.name}**: 授課老師為 ${c.teacher}，總時數 ${c.hours} 小時。`).join('\n')}
-
 您的建議應包含以下幾點，並使用 Markdown 格式化，各點使用 ### 作為三級標題：
 1. ### 綜效分析：分析這些課程的知識點如何相輔相成。
 2. ### 學習順序建議：建議一個理想的學習順序並解釋原因。
 3. ### 職涯發展潛力：說明完成課程後的可能職業方向。
 4. ### 延伸學習建議：推薦其他相關資源以深化學習。
-
 請以條理分明、專業且鼓勵人心的語氣呈現。`;
 
             try {
                 const apiKey = "";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-                
-                const response = await fetchWithRetry(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
+                const response = await fetchWithRetry(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const result = await response.json();
-                
                 const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '無法獲取建議，請稍後再試。';
-                
                 let html = text
                     .replace(/^### (.*$)/gm, '<h3 class="text-lg sm:text-xl font-bold mt-6 mb-3 text-gray-800 border-b pb-2">$1</h3>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>')
                     .replace(/^(?:\s*[-*]\s.*(?:\n|$))+/gm, (match) => `<ul class="list-disc pl-5 text-gray-700 space-y-2">${match.trim().split('\n').map(item => `<li>${item.replace(/^\s*[-*]\s/, '')}</li>`).join('')}</ul>`)
                     .replace(/^(?:\s*\d+\.\s.*(?:\n|$))+/gm, (match) => `<ol class="list-decimal pl-5 text-gray-700 space-y-2">${match.trim().split('\n').map(item => `<li>${item.replace(/^\s*\d+\.\s/, '')}</li>`).join('')}</ol>`)
-                    .replace(/\n/g, '<br>')
-                    .replace(/<br>\s*<(h3|ul|ol)/g, '<$1')
-                    .replace(/<\/(h3|ul|ol)>\s*<br>/g, '</$1>');
-
+                    .replace(/\n/g, '<br>').replace(/<br>\s*<(h3|ul|ol)/g, '<$1').replace(/<\/(h3|ul|ol)>\s*<br>/g, '</$1>');
                 aiResponse.innerHTML = html;
-
             } catch (error) {
                 console.error("Gemini API Error:", error);
                 aiResponse.innerHTML = `<p class="text-red-500">發生錯誤：${error.message}</p><p>請檢查您的網路連線，或稍後再試。</p>`;
