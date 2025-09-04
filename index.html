@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動式課程行事曆 (AI 學習顧問)</title>
+    <title>互動式課程行事曆</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
@@ -42,7 +43,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 0.375rem;
-            font-size: 0.75rem; /* Slightly smaller for better fit */
+            font-size: 0.75rem;
             color: #4b5563;
         }
         .day-header {
@@ -65,9 +66,9 @@
             border: 2px solid #3b82f6;
         }
         .leave-day {
-            background-color: #fef9c3 !important; /* 淺黃色背景 */
-            color: #713f12 !important; /* 深黃色文字 */
-            border: 2px dashed #facc15; /* 黃色虛線邊框 */
+            background-color: #fef9c3 !important;
+            color: #713f12 !important;
+            border: 2px dashed #facc15;
         }
         .leave-day .day-number {
             text-decoration: none;
@@ -104,7 +105,10 @@
         #info-panel {
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        #modal-overlay { transition: opacity 0.3s ease; }
+        #modal-overlay { 
+            transition: opacity 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
         .modal-content { transition: transform 0.3s ease; }
         .loader-container p {
             margin-top: 1rem;
@@ -123,10 +127,47 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .register-day-bell {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            color: #ef4444;
+            font-size: 0.8rem;
+            animation: bell-shake 1s infinite;
+        }
+        @keyframes bell-shake {
+            0%, 100% { transform: rotate(0deg); }
+            20%, 60% { transform: rotate(15deg); }
+            40%, 80% { transform: rotate(-15deg); }
+        }
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+        .notification-bell i {
+            font-size: 1.25rem;
+        }
+        .notification-bell .fa-circle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 0.5rem;
+            color: red;
+            transform: translate(50%, -50%);
+        }
+        
+        .conflict-course {
+            border: 2px dashed #ef4444;
+            background-color: #fecaca;
+        }
+
+        .selected-conflict {
+            border: 2px dashed #ef4444 !important;
+        }
 
         @media print {
             body { background-color: #ffffff !important; padding: 1cm; font-size: 9pt; }
-            .no-print, #course-selection-list, #info-panel, #modal-overlay, #ai-advisor-controls, #print-instruction, #leave-info-panel { display: none !important; }
+            .no-print, #course-selection-list, #info-panel, #modal-overlay, #ai-advisor-controls, #print-instruction, #leave-info-panel, .register-day-bell { display: none !important; }
             .max-w-7xl { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
             .bg-white.rounded-xl.shadow-lg { box-shadow: none !important; border-bottom: 2px solid #ccc; border-radius: 0; padding: 0 0 1rem 0; }
             .calendar-grid { display: flex !important; flex-wrap: wrap !important; justify-content: space-between; gap: 1rem; }
@@ -146,8 +187,8 @@
 
     <div class="max-w-7xl mx-auto">
         <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 md:mb-8">
-            <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">互動式課程行事曆 & AI 學習顧問</h1>
-            <p class="text-gray-600 text-sm sm:text-base mb-4">請在下方列表中勾選課程，或點擊月曆上的日期查看老師、地址等詳細資訊，並可使用 AI 功能獲取個人化的學習路徑建議。</p>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">互動式課程行事曆</h1>
+            <p class="text-gray-600 text-sm sm:text-base mb-4">請在下方列表中勾選課程，或點擊月曆上的日期查看老師、地址等詳細資訊。</p>
             
             <div id="print-instruction" class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md mb-4" role="alert">
                 <p><strong class="font-bold">🖨️ 列印提示：</strong>請使用快捷鍵 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd>+<kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">P</kbd> (Mac: <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Cmd</kbd>+<kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">P</kbd>)。在預覽中將<strong>版面設定為「橫向」</strong>，可將三個月並排列印。</p>
@@ -163,16 +204,11 @@
                 <p id="conflict-message" class="text-sm mt-2">您選擇的課程時間有重疊。</p>
             </div>
 
-            <div id="ai-advisor-controls" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-slate-50 rounded-lg">
-                 <button id="get-recommendation-btn" disabled class="w-full sm:w-auto bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-300">
-                     ✨ AI 學習路徑建議
-                 </button>
-                 <p id="selection-helper" class="text-sm text-gray-500">請至少選擇一門課程以啟用 AI 建議功能。</p>
-            </div>
         </div>
 
         <div id="course-selection-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"></div>
         <div id="calendar-view" class="calendar-grid"></div>
+        
         <div id="info-panel" class="mt-8 bg-white rounded-xl shadow-lg p-4 sm:p-6 hidden opacity-0 transform -translate-y-4 no-print">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg sm:text-xl font-bold text-gray-800">課程詳細資訊</h2>
@@ -181,19 +217,17 @@
             <div id="info-panel-content" class="mt-4"></div>
         </div>
     </div>
-
-    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50 hidden opacity-0 no-print">
-        <div class="modal-content bg-white rounded-lg shadow-2xl w-full max-w-lg sm:max-w-2xl max-h-[90vh] flex flex-col transform scale-95">
-            <div class="flex justify-between items-center p-4 border-b">
-                <h3 class="text-base sm:text-lg font-bold text-gray-800">✨ 您的個人化學習建議</h3>
+    
+    <!-- Notification Modal -->
+    <div id="modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden opacity-0 no-print">
+        <div id="notification-modal" class="modal-content bg-white p-6 rounded-lg shadow-lg w-11/12 md:w-1/3 transform scale-95 transition-all duration-300">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">課程報名提醒</h3>
                 <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
             </div>
-            <div id="modal-body" class="p-4 sm:p-6 overflow-y-auto">
-                <div id="loader" class="flex flex-col justify-center items-center h-48 loader-container">
-                    <div class="loader"></div>
-                    <p class="text-sm">AI 正在為您進行深度分析，這可能需要約 30 秒，請稍候片刻。</p>
-                </div>
-                <div id="ai-response" class="prose max-w-none hidden"></div>
+            <div id="modal-content-text" class="text-gray-700 text-base space-y-2"></div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">確定</button>
             </div>
         </div>
     </div>
@@ -201,43 +235,34 @@
     <script>
         // --- 課程資料 ---
         const courses = [
-            { id: "c1", name: "AI智慧繪圖設計與AIGC媒體設計班第01期", teacher: "陳瑜芳老師", start: "114/07/18", end: "114/08/29", specificDates: ["114/07/18", "114/07/23", "114/07/25", "114/07/30", "114/08/01", "114/08/06", "114/08/08", "114/08/15", "114/08/20", "114/08/22", "114/08/29"], time: "18:30~21:30", color: "#38bdf8", address: "70101臺南市東區大學路1號成功校區(成功大學資訊工程系2樓(65203電腦教室))", capacity: "23人", hours: 36 },
-            { id: "c3", name: "AI Agent智能助理開發實作班第01期", teacher: "馬恩奇老師", start: "114/08/24", end: "114/09/28", days: ["Sunday"], time: "09:00~12:00, 13:00~17:00", color: "#fb923c", address: "700002臺南市中西區中正路240號六樓(王者會議室)", capacity: "20人", hours: 42 },
-            { id: "c4", name: "商務日語會話實務班第01期", teacher: "林佩樺老師、山本弘幸老師", start: "114/09/18", end: "114/12/18", days: ["Thursday"], time: "18:30~21:30", color: "#a78bfa", address: "70143臺南市東區長榮路一段225號B1(樹德科技大學台南分部(B教室))", capacity: "20人", hours: 42 },
-            { id: "c7", name: "職場情境日語與文法應用班第02期", teacher: "陳昭芬老師", start: "114/09/06", end: "114/12/27", days: ["Saturday"], time: "09:00~12:00", color: "#6366f1", address: "70047臺南市中西區大埔街50號2樓(台南市總工會2樓會議室)", capacity: "20人", hours: 45 },
-            { 
-                id: "c8", 
-                name: "生成式AI與Canva創意設計班第01期", 
-                teacher: "顏啟峰老師", 
-                start: "115/03/18", 
-                end: "115/04/29", 
-                specificDates: ["115/03/18", "115/03/23", "115/03/25", "115/03/30", "115/04/01", "115/04/08", "115/04/10", "115/04/13", "115/04/15", "115/04/17", "115/04/20", "115/04/22", "115/04/27", "115/04/29"],
-                time: "18:30~21:30", 
-                color: "#f472b6", 
-                address: "71089臺南市永康區中山路94巷1-3號3樓(B3PC教室)", 
-                capacity: "20人", 
-                hours: 42 
-            }
-        ];
-        
+            { id: "c3", name: "AI Agent智能助理開發實作班第01期", teacher: "馬恩奇老師", start: "114/08/24", end: "114/09/28", days: ["Sunday"], time: "09:00~12:00, 13:00~17:00", color: "#fb923c", address: "700002臺南市中西區中正路240號六樓(王者會議室)", capacity: "20人", hours: 42, registered: true },
+            { id: "c7", name: "職場情境日語與文法應用班第02期", teacher: "陳昭芬老師", start: "114/09/06", end: "114/12/27", days: ["Saturday"], time: "09:00~12:00", color: "#6366f1", address: "70047臺南市中西區大埔街50號2樓(台南市總工會2樓會議室)", capacity: "20人", hours: 45, registered: true },
+            { id: "c4", name: "商務日語會話實務班第01期", teacher: "林佩樺老師、山本弘幸老師", start: "114/09/18", end: "114/12/18", days: ["Thursday"], time: "18:30~21:30", color: "#a78bfa", address: "70143臺南市東區長榮路一段225號B1(樹德科技大學台南分部(B教室))", capacity: "20人", hours: 42, registered: true },
+            { id: "c10", name: "CANVA質感設計班第02期", teacher: "張巍馨老師", start: "114/11/11", end: "115/01/06", days: ["Tuesday"], time: "18:30~21:30", color: "#f87171", address: "70041臺南市中西區西門路2段48號1樓(訓練教室B)", capacity: "20人", hours: 24, registerStart: "114/10/12 12:00", registerEnd: "114/11/08 18:00" },
+            { id: "c9", name: "Python大數據分析與網路爬蟲實務班第02期", teacher: "劉哲宏老師", start: "115/01/07", end: "115/04/15", days: ["Wednesday"], time: "18:30~21:30", color: "#4ade80", address: "70143臺南市東區長榮路1段225號B1(樹德科技大學台南分部-(電腦教室))", capacity: "26人", hours: 42, registerStart: "114/12/08 12:00", registerEnd: "115/01/04 18:00" },
+            { id: "c8", name: "生成式AI與Canva創意設計班第01期", teacher: "顏啟峰老師", start: "115/03/18", end: "115/04/29", specificDates: ["115/03/18", "115/03/23", "115/03/25", "115/03/30", "115/04/01", "115/04/08", "115/04/10", "115/04/13", "115/04/15", "115/04/17", "115/04/20", "115/04/22", "115/04/27", "115/04/29"], time: "18:30~21:30", color: "#f472b6", address: "71089臺南市永康區中山路94巷1-3號3樓(B3PC教室)", capacity: "20人", hours: 42, registerStart: "115/02/16 12:00", registerEnd: "115/03/15 18:00" }
+        ].sort((a, b) => {
+            const dateA = rocToDate(a.start);
+            const dateB = rocToDate(b.start);
+            return dateA - dateB;
+        });
+
         const leaveData = {
             "c7": ["114/09/13"], "c3": ["114/09/14"],
         };
-
         const weekDayHeaders = ['日', '一', '二', '三', '四', '五', '六'];
         const dayOfWeekMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
         function rocToDate(rocDateStr) {
             const [year, month, day] = rocDateStr.split('/').map(Number);
             return new Date(year + 1911, month - 1, day);
         }
+        
+        function getRegisterDate(course) {
+            if (!course.registerStart) return null;
+            const dateStr = course.registerStart.split(' ')[0];
+            return rocToDate(dateStr).toISOString().split('T')[0];
+        }
 
-        const getRecommendationBtn = document.getElementById('get-recommendation-btn');
-        const selectionHelper = document.getElementById('selection-helper');
-        const modalOverlay = document.getElementById('modal-overlay');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const loader = document.getElementById('loader');
-        const aiResponse = document.getElementById('ai-response');
         const courseSelectionListEl = document.getElementById('course-selection-list');
         const calendarViewEl = document.getElementById('calendar-view');
         const infoPanel = document.getElementById('info-panel');
@@ -247,7 +272,9 @@
         const conflictMessageEl = document.getElementById('conflict-message');
         const leaveInfoPanelEl = document.getElementById('leave-info-panel');
         const leaveMessageEl = document.getElementById('leave-message');
-
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContentText = document.getElementById('modal-content-text');
+        const closeBtnModal = document.getElementById('close-modal-btn');
         let selectedCourses = new Set();
         let classSchedule = {};
         let lastSelectedDay = null;
@@ -258,7 +285,7 @@
             renderCalendarView();
             setupEventListeners();
         });
-        
+
         function getLeaveDatesForCourse(courseId) {
             return (leaveData[courseId] || []).map(d => rocToDate(d).toISOString().split('T')[0]);
         }
@@ -278,7 +305,7 @@
                     const courseEnd = rocToDate(course.end);
                     let currentDate = new Date(courseStart);
                     while (currentDate <= courseEnd) {
-                        const dayName = currentDate.toLocaleString('en-US', { weekday: 'long' });
+                        const dayName = dayOfWeekMap[currentDate.getDay()];
                         if (course.days.includes(dayName)) {
                             const dateString = currentDate.toISOString().split('T')[0];
                             if (!classSchedule[dateString]) classSchedule[dateString] = [];
@@ -291,42 +318,117 @@
         }
 
         function renderCourseSelectionList() {
-            courseSelectionListEl.innerHTML = courses.map(course => `
-                <label for="checkbox-${course.id}" class="flex items-center p-3 bg-white rounded-lg shadow-sm cursor-pointer hover:bg-gray-50">
-                    <input type="checkbox" id="checkbox-${course.id}" data-course-id="${course.id}" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span class="ml-3 text-sm font-medium text-gray-700">${course.name}</span>
-                    <div class="ml-auto h-4 w-4 rounded-full" style="background-color: ${course.color};"></div>
-                </label>
-            `).join('');
+            const conflictingCourseIds = findConflicts(Array.from(selectedCourses));
+            
+            courseSelectionListEl.innerHTML = courses.map(course => {
+                const isRegistered = course.registered;
+                let courseInfo = `<p class="mt-1 text-xs text-gray-500">上課日期：${course.start} ~ ${course.end} | 總時數：${course.hours} 小時</p>`;
+                let bellIcon = '';
+                let conflictClass = '';
+                let conflictLabel = '';
+                let leaveInfoHTML = '';
+                let conflictInfoHTML = '';
+
+                // Handle registration info for courses not yet registered
+                if (!isRegistered) {
+                    const registerStart = rocToDate(course.registerStart.split(' ')[0]);
+                    const today = new Date();
+                    const diffTime = registerStart.getTime() - today.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const countdownText = diffDays > 0 ? `(倒數 ${diffDays} 天開放)` : '(已開放)';
+                    courseInfo += `<p class="mt-1 text-xs text-gray-500">報名時間：<strong class="text-blue-600">${course.registerStart.split(' ')[0]} ${course.registerStart.split(' ')[1]}</strong> ${countdownText} | 可請假上限：${(course.hours / 5).toFixed(1)} 小時</p>`;
+                    
+                    bellIcon = `
+                        <div class="notification-bell cursor-pointer" data-course-id="${course.id}">
+                            <i class="fa-solid fa-bell text-red-500"></i>
+                            <i class="fa-solid fa-circle text-red-500"></i>
+                        </div>
+                    `;
+                } else {
+                     courseInfo += `<p class="mt-1 text-xs text-gray-500">總時數：${course.hours} 小時 | 可請假上限：${(course.hours / 5).toFixed(1)} 小時</p>`;
+                }
+
+
+                // Handle leave info
+                const sessionHours = calculateSessionHours(course.time);
+                const totalLeaveHours = (leaveData[course.id] || []).length * sessionHours;
+                const remainingLeaveHours = (course.hours / 5) - totalLeaveHours;
+                const leaveStatusColor = remainingLeaveHours < 0 ? 'text-red-500' : 'text-green-500';
+
+                // Display leave info for registered courses that have leave data
+                if (isRegistered && totalLeaveHours > 0) {
+                    leaveInfoHTML = `
+                        <p class="mt-2 text-xs text-gray-600 space-y-1">
+                            <span class="text-red-500">累積請假時數 ${totalLeaveHours.toFixed(1)} 小時</span>，
+                            <span class="${leaveStatusColor}">尚餘 ${remainingLeaveHours.toFixed(1)} 小時</span>
+                        </p>
+                    `;
+                }
+                
+                // Handle conflicts for selected and non-selected courses
+                const conflictingWith = [];
+                const selectedCourseObjects = Array.from(selectedCourses).map(id => courses.find(c => c.id === id));
+                selectedCourseObjects.forEach(selectedCourse => {
+                    if (selectedCourse.id !== course.id && hasConflict(selectedCourse, course)) {
+                        conflictingWith.push(selectedCourse.name.split('第')[0]);
+                    }
+                });
+
+                if (conflictingWith.length > 0) {
+                    const conflictMessage = `與 ${conflictingWith.join('、')} 時間重疊`;
+                    if (selectedCourses.has(course.id)) {
+                        conflictInfoHTML = `<p class="mt-2 text-xs text-red-500 font-semibold">⚠️ ${conflictMessage}</p>`;
+                    } else {
+                        conflictInfoHTML = `<p class="mt-2 text-xs text-red-500 font-semibold">⚠️ ${conflictMessage}，無法報名</p>`;
+                    }
+                }
+
+                return `
+                    <label for="checkbox-${course.id}" class="flex items-center p-3 bg-white rounded-lg shadow-sm cursor-pointer hover:bg-gray-50 ${conflictClass}">
+                        <input type="checkbox" id="checkbox-${course.id}" data-course-id="${course.id}" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${selectedCourses.has(course.id) ? 'checked' : ''}>
+                        <div class="ml-3 text-sm font-medium text-gray-700 flex flex-col w-full">
+                            <div class="flex items-center">
+                                ${bellIcon}
+                                <span class="ml-1">${course.name}</span>
+                                <div class="ml-auto h-4 w-4 rounded-full" style="background-color: ${course.color};"></div>
+                            </div>
+                            ${courseInfo}
+                            ${leaveInfoHTML}
+                            ${conflictInfoHTML}
+                        </div>
+                    </label>
+                `;
+            }).join('');
         }
 
         function renderCalendarView() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
+            const registerDates = courses.filter(c => c.registerStart).map(c => rocToDate(c.registerStart.split(' ')[0]).toISOString().split('T')[0]);
 
             calendarViewEl.innerHTML = '';
+            
+            // Start from 2025/09/01 (current date in the provided data)
+            const startYear = 2025;
+            const startMonth = 8; // September is month 8 in JS Date object
+
+            // Find the last date of all courses to determine the end of the calendar
             const allDates = courses.flatMap(c => {
                 if (c.specificDates) return c.specificDates.map(d => rocToDate(d));
                 return [rocToDate(c.start), rocToDate(c.end)];
             });
-
-            if (allDates.length === 0) return;
-
-            const startDate = new Date(Math.min.apply(null, allDates));
-            startDate.setDate(1);
-            const endDate = new Date(Math.max.apply(null, allDates));
-
-            let currentMonthDate = new Date(startDate);
+            const endDate = allDates.length > 0 ? new Date(Math.max.apply(null, allDates)) : new Date(startYear, startMonth);
+            
+            let currentMonthDate = new Date(startYear, startMonth, 1);
             while (currentMonthDate <= endDate) {
                 const year = currentMonthDate.getFullYear();
                 const month = currentMonthDate.getMonth();
                 const monthContainer = document.createElement('div');
                 monthContainer.className = 'month-container';
-                
                 let monthHTML = `<h2 class="text-lg sm:text-xl font-bold text-center text-gray-800 mb-4">${year}年 ${month + 1}月</h2>
                     <div class="day-grid mb-2">${weekDayHeaders.map(day => `<div class="day-header">${day}</div>`).join('')}</div>
                     <div class="day-grid">`;
-                
+
                 const firstDayOfMonth = new Date(year, month, 1).getDay();
                 monthHTML += `<div></div>`.repeat(firstDayOfMonth);
 
@@ -335,25 +437,32 @@
                     const dateString = date.toISOString().split('T')[0];
                     const scheduledClasses = classSchedule[dateString] || [];
                     const isLeaveDay = scheduledClasses.some(c => getLeaveDatesForCourse(c.id).includes(dateString));
+                    const isRegisterDay = registerDates.includes(dateString);
                     
                     let dayHTML = '<div class="day-cell">';
-                    if (scheduledClasses.length > 0) {
+                    
+                    if (scheduledClasses.length > 0 || isRegisterDay) {
                         let backgroundStyle = '', finalClasses = ['day-content', 'class-day'], tooltipText = [];
                         if (isLeaveDay) finalClasses.push('leave-day');
                         if (date < today) finalClasses.push('past-day');
                         
-                        if (scheduledClasses.length === 1) backgroundStyle = `background-color: ${scheduledClasses[0].color};`;
-                        else backgroundStyle = `background: linear-gradient(135deg, ${scheduledClasses[0].color} 50%, ${scheduledClasses[1].color} 50%);`;
-                        
+                        const dayCourses = scheduledClasses.slice(0, 2);
+                        if (dayCourses.length === 1) backgroundStyle = `background-color: ${dayCourses[0].color};`;
+                        else if (dayCourses.length > 1) backgroundStyle = `background: linear-gradient(135deg, ${dayCourses[0].color} 50%, ${dayCourses[1].color} 50%);`;
+
                         tooltipText = scheduledClasses.map(c => c.name.split('第')[0]);
-                        
                         dayHTML += `<div class="${finalClasses.join(' ')}" style="${backgroundStyle}" data-date="${dateString}">
-                                <span class="day-number">${i}</span>
-                                <div class="tooltip">${tooltipText.join('<br>')}</div>
-                            </div>`;
+                                        <span class="day-number">${i}</span>
+                                        <div class="tooltip">${tooltipText.join('<br>')}</div>
+                                    </div>`;
                     } else {
                         dayHTML += `<div class="day-content"><span class="day-number">${i}</span></div>`;
                     }
+
+                    if (isRegisterDay) {
+                        dayHTML = dayHTML.replace('</div class="day-cell">', `<i class="fas fa-bell register-day-bell"></i></div>`);
+                    }
+
                     monthHTML += dayHTML + '</div>';
                 }
 
@@ -370,22 +479,33 @@
                 e.target.checked ? selectedCourses.add(courseId) : selectedCourses.delete(courseId);
                 updateSelectionState();
             });
-
             calendarViewEl.addEventListener('click', (e) => {
                 const dayElement = e.target.closest('.class-day');
                 if (dayElement) showInfoPanel(dayElement.dataset.date, dayElement);
             });
-
             closeInfoPanelBtn.addEventListener('click', hideInfoPanel);
-            getRecommendationBtn.addEventListener('click', handleGetRecommendation);
-            closeModalBtn.addEventListener('click', closeModal);
+            
+            // Add click listener for notification bells
+            courseSelectionListEl.addEventListener('click', (e) => {
+                const bellElement = e.target.closest('.notification-bell');
+                if (bellElement) {
+                    const courseId = bellElement.dataset.courseId;
+                    const course = courses.find(c => c.id === courseId);
+                    if (course) {
+                        showNotificationModal(course);
+                    }
+                }
+            });
+            closeBtnModal.addEventListener('click', closeModal);
             modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) closeModal();
+                if (e.target.id === 'modal-overlay') {
+                    closeModal();
+                }
             });
         }
         
         function calculateSessionHours(timeStr) {
-             return timeStr.split(',').reduce((total, interval) => {
+            return timeStr.split(',').reduce((total, interval) => {
                 const [start, end] = interval.trim().split('~').map(t => {
                     const [h, m] = t.split(':').map(Number);
                     return h + m / 60;
@@ -393,12 +513,67 @@
                 return total + (Math.abs(end - start));
             }, 0);
         }
+        
+        function parseTime(timeStr) {
+            return timeStr.split(',').map(interval => {
+                const [start, end] = interval.trim().split('~').map(t => {
+                    const [h, m] = t.split(':').map(Number);
+                    return h * 60 + m;
+                });
+                return { start, end };
+            });
+        }
+
+        function hasConflict(course1, course2) {
+            const dates1 = course1.specificDates ? course1.specificDates.map(d => rocToDate(d).toISOString().split('T')[0]) : Object.keys(classSchedule).filter(date => classSchedule[date].some(c => c.id === course1.id));
+            const dates2 = course2.specificDates ? course2.specificDates.map(d => rocToDate(d).toISOString().split('T')[0]) : Object.keys(classSchedule).filter(date => classSchedule[date].some(c => c.id === course2.id));
+            
+            const sharedDates = dates1.filter(date => dates2.includes(date));
+            if (sharedDates.length === 0) return false;
+
+            for (const date of sharedDates) {
+                const times1 = parseTime(course1.time);
+                const times2 = parseTime(course2.time);
+                for (const t1 of times1) {
+                    for (const t2 of times2) {
+                        if (Math.max(t1.start, t2.start) < Math.min(t1.end, t2.end)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function findConflicts(courseIds) {
+            const courseObjects = courseIds.map(id => courses.find(c => c.id === id));
+            const conflicts = new Set();
+            
+            for (let i = 0; i < courseObjects.length; i++) {
+                for (let j = i + 1; j < courseObjects.length; j++) {
+                    if (hasConflict(courseObjects[i], courseObjects[j])) {
+                        conflicts.add(courseObjects[i].id);
+                        conflicts.add(courseObjects[j].id);
+                    }
+                }
+            }
+            return Array.from(conflicts);
+        }
 
         function updateSelectionState() {
-            const hasSelection = selectedCourses.size > 0;
-            getRecommendationBtn.disabled = !hasSelection;
-            selectionHelper.textContent = hasSelection ? `已選擇 ${selectedCourses.size} 門課程。` : '請至少選擇一門課程以啟用 AI 建議功能。';
-            checkForConflicts();
+            const conflictingCourseIds = findConflicts(Array.from(selectedCourses));
+            const hasConflicts = conflictingCourseIds.length > 0;
+            
+            if (hasConflicts) {
+                const conflictDetails = conflictingCourseIds.map(id => {
+                    const course = courses.find(c => c.id === id);
+                    return course.name.split('第')[0];
+                }).join(' 與 ');
+                conflictMessageEl.textContent = `您選擇的課程 "${conflictDetails}" 時間重疊。`;
+            }
+
+            conflictWarningEl.classList.toggle('hidden', !hasConflicts);
+            renderCourseSelectionList();
             updateLeaveInfo();
         }
 
@@ -439,47 +614,6 @@
             leaveInfoPanelEl.classList.toggle('hidden', !hasLeave);
         }
 
-        function parseTime(timeStr) {
-            return timeStr.split(',').map(interval => {
-                const [start, end] = interval.trim().split('~').map(t => {
-                    const [h, m] = t.split(':').map(Number);
-                    return h * 60 + m;
-                });
-                return { start, end };
-            });
-        }
-
-        function checkForConflicts() {
-            const selectedCourseObjects = Array.from(selectedCourses).map(id => courses.find(c => c.id === id));
-            const dailySchedule = {};
-            let conflictFound = false;
-            let conflictDetails = '';
-
-            selectedCourseObjects.forEach(course => {
-                Object.keys(classSchedule).forEach(dateString => {
-                    if (classSchedule[dateString].some(c => c.id === course.id)) {
-                        if (!dailySchedule[dateString]) dailySchedule[dateString] = [];
-                        const timeIntervals = parseTime(course.time);
-                        timeIntervals.forEach(interval => dailySchedule[dateString].push({ ...interval, courseName: course.name }));
-                    }
-                });
-            });
-
-            for (const date in dailySchedule) {
-                const dayEvents = dailySchedule[date].sort((a, b) => a.start - b.start);
-                for (let i = 0; i < dayEvents.length - 1; i++) {
-                    if (dayEvents[i].end > dayEvents[i+1].start) {
-                        conflictFound = true;
-                        conflictDetails = `於 ${new Date(date).toLocaleDateString('zh-Hant')}，課程 "${dayEvents[i].courseName.split('第')[0]}" 與 "${dayEvents[i+1].courseName.split('第')[0]}" 時間重疊。`;
-                        break;
-                    }
-                }
-                if (conflictFound) break;
-            }
-            conflictMessageEl.textContent = conflictDetails;
-            conflictWarningEl.classList.toggle('hidden', !conflictFound);
-        }
-
         function showInfoPanel(dateString, dayElement) {
             if (lastSelectedDay) lastSelectedDay.classList.remove('day-selected');
             dayElement.classList.add('day-selected');
@@ -492,6 +626,11 @@
             let contentHTML = `<p class="text-gray-600 mb-4">日期：${formattedDate}</p>`;
             classes.forEach(course => {
                 const isLeave = getLeaveDatesForCourse(course.id).includes(dateString);
+                const registerStartROC = course.registerStart?.split(' ')[0].split('/') || [];
+                const registerEndROC = course.registerEnd?.split(' ')[0].split('/') || [];
+                const registerStartDisplay = registerStartROC.length > 0 ? `${parseInt(registerStartROC[0])}年${parseInt(registerStartROC[1])}月${parseInt(registerStartROC[2])}日 ${course.registerStart.split(' ')[1]}` : '已報名';
+                const registerEndDisplay = registerEndROC.length > 0 ? `~ ${parseInt(registerEndROC[0])}年${parseInt(registerEndROC[1])}月${parseInt(registerEndROC[2])}日 ${course.registerEnd.split(' ')[1]}` : '';
+
                 let leaveInfoHTML = '';
                 if (isLeave) {
                     const sessionHours = calculateSessionHours(course.time);
@@ -499,24 +638,30 @@
                     const maxLeaveHours = course.hours / 5;
                     const remainingLeaveHours = maxLeaveHours - totalLeaveHours;
                     leaveInfoHTML = `<div class="mt-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded-md text-sm space-y-1">
-                            <p class="font-bold flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>請假時數說明</p>
-                            <p>時數上限: <span class="font-semibold text-blue-700">${maxLeaveHours.toFixed(1)} 小時</span></p>
-                            <p>本次請假: <span class="font-semibold">${sessionHours.toFixed(1)} 小時</span></p>
-                            <p>累計請假: <span class="font-semibold ${totalLeaveHours > maxLeaveHours ? 'text-red-600' : ''}">${totalLeaveHours.toFixed(1)} 小時</span></p>
-                            <p>剩餘時數: <span class="font-bold ${remainingLeaveHours < 0 ? 'text-red-600' : 'text-green-700'}">${remainingLeaveHours.toFixed(1)} 小時</span></p>
-                        </div>`;
+                                <p class="font-bold flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>請假時數說明</p>
+                                <p>時數上限: <span class="font-semibold text-blue-700">${maxLeaveHours.toFixed(1)} 小時</span></p>
+                                <p>本次請假: <span class="font-semibold">${sessionHours.toFixed(1)} 小時</span></p>
+                                <p>累計請假: <span class="font-semibold ${totalLeaveHours > maxLeaveHours ? 'text-red-600' : ''}">${totalLeaveHours.toFixed(1)} 小時</span></p>
+                                <p>剩餘時數: <span class="font-bold ${remainingLeaveHours < 0 ? 'text-red-600' : 'text-green-700'}">${remainingLeaveHours.toFixed(1)} 小時</span></p>
+                            </div>`;
                 }
+
                 contentHTML += `
                     <div class="border-l-4 p-4 rounded-r-lg mb-3" style="border-color: ${course.color}; background-color: ${course.color}1A;">
                         <p class="font-bold text-gray-900 flex items-center">${course.name}${isLeave ? '<span class="ml-2 bg-yellow-200 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">已請假</span>' : ''}</p>
                         <div class="mt-2 text-sm text-gray-700 space-y-1">
+                            <p><strong class="font-semibold">上課日期：</strong>${course.start} ~ ${course.end}</p>
                             <p><strong class="font-semibold">上課時間：</strong>${course.time}</p>
                             <p><strong class="font-semibold">授課老師：</strong>${course.teacher}</p>
                             <p><strong class="font-semibold">上課地址：</strong>${course.address}</p>
+                            <p><strong class="font-semibold">總訓練時數：</strong>${course.hours} 小時</p>
+                            <p><strong class="font-semibold">可請假上限：</strong>${(course.hours / 5).toFixed(1)} 小時</p>
+                            <p><strong class="font-semibold">報名日期：</strong>${registerStartDisplay} ${registerEndDisplay}</p>
                         </div>
                         ${leaveInfoHTML}
                     </div>`;
             });
+
             infoPanelContent.innerHTML = contentHTML;
             infoPanel.classList.remove('hidden');
             setTimeout(() => {
@@ -531,71 +676,34 @@
             setTimeout(() => infoPanel.classList.add('hidden'), 300);
         }
 
-        function openModal() {
-            modalOverlay.classList.remove('hidden');
-            setTimeout(() => {
-                 modalOverlay.classList.remove('opacity-0');
-                 modalOverlay.querySelector('.modal-content').classList.remove('scale-95');
-            }, 10);
+        function showNotificationModal(course) {
+            const registerStart = rocToDate(course.registerStart.split(' ')[0]);
+            const registerStartROC = course.registerStart.split(' ')[0].split('/');
+            const registerStartDisplay = `${parseInt(registerStartROC[0])}年${parseInt(registerStartROC[1])}月${parseInt(registerStartROC[2])}日`;
+            const registerStartFull = `${registerStartDisplay} ${course.registerStart.split(' ')[1]}`;
+            
+            const today = new Date();
+            const diffTime = registerStart.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            modalContentText.innerHTML = `
+                <p><strong>課程名稱：</strong>${course.name}</p>
+                <p><strong>報名時間：</strong>${registerStartFull}</p>
+                <p><strong>開放報名倒數：</strong><span class="font-bold text-red-600">${diffDays > 0 ? diffDays : 0}</span> 天</p>
+            `;
+            
+            modalOverlay.classList.remove('hidden', 'opacity-0');
+            modalOverlay.classList.add('flex', 'opacity-100');
+            document.getElementById('notification-modal').classList.remove('scale-95');
         }
 
         function closeModal() {
             modalOverlay.classList.add('opacity-0');
-            modalOverlay.querySelector('.modal-content').classList.add('scale-95');
-            setTimeout(() => modalOverlay.classList.add('hidden'), 300);
-        }
-
-        async function fetchWithRetry(url, options, maxRetries = 5, initialDelay = 1000) {
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.ok) return response;
-                    if (response.status >= 400 && response.status < 500 && response.status !== 429) throw new Error(`API 請求失敗，狀態碼：${response.status}`);
-                } catch (error) { if (attempt === maxRetries - 1) throw error; }
-                await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(2, attempt)));
-            }
-            throw new Error('API 請求重試多次後仍然失敗。');
-        }
-
-        async function handleGetRecommendation() {
-            openModal();
-            loader.classList.remove('hidden');
-            aiResponse.classList.add('hidden');
-            aiResponse.innerHTML = '';
-            const selectedCourseDetails = Array.from(selectedCourses).map(id => courses.find(c => c.id === id));
-            const prompt = `您是一位專業的職涯發展與學習顧問。請根據使用者選擇的以下課程，為他們提供一份綜合的學習路徑建議。
-選擇的課程列表：
-${selectedCourseDetails.map(c => `- **${c.name}**: 授課老師為 ${c.teacher}，總時數 ${c.hours} 小時。`).join('\n')}
-您的建議應包含以下幾點，並使用 Markdown 格式化，各點使用 ### 作為三級標題：
-1. ### 綜效分析：分析這些課程的知識點如何相輔相成。
-2. ### 學習順序建議：建議一個理想的學習順序並解釋原因。
-3. ### 職涯發展潛力：說明完成課程後的可能職業方向。
-4. ### 延伸學習建議：推薦其他相關資源以深化學習。
-請以條理分明、專業且鼓勵人心的語氣呈現。`;
-
-            try {
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-                const response = await fetchWithRetry(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                const result = await response.json();
-                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '無法獲取建議，請稍後再試。';
-                let html = text
-                    .replace(/^### (.*$)/gm, '<h3 class="text-lg sm:text-xl font-bold mt-6 mb-3 text-gray-800 border-b pb-2">$1</h3>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>')
-                    .replace(/^(?:\s*[-*]\s.*(?:\n|$))+/gm, (match) => `<ul class="list-disc pl-5 text-gray-700 space-y-2">${match.trim().split('\n').map(item => `<li>${item.replace(/^\s*[-*]\s/, '')}</li>`).join('')}</ul>`)
-                    .replace(/^(?:\s*\d+\.\s.*(?:\n|$))+/gm, (match) => `<ol class="list-decimal pl-5 text-gray-700 space-y-2">${match.trim().split('\n').map(item => `<li>${item.replace(/^\s*\d+\.\s/, '')}</li>`).join('')}</ol>`)
-                    .replace(/\n/g, '<br>').replace(/<br>\s*<(h3|ul|ol)/g, '<$1').replace(/<\/(h3|ul|ol)>\s*<br>/g, '</$1>');
-                aiResponse.innerHTML = html;
-            } catch (error) {
-                console.error("Gemini API Error:", error);
-                aiResponse.innerHTML = `<p class="text-red-500">發生錯誤：${error.message}</p><p>請檢查您的網路連線，或稍後再試。</p>`;
-            } finally {
-                loader.classList.add('hidden');
-                aiResponse.classList.remove('hidden');
-            }
+            document.getElementById('notification-modal').classList.add('scale-95');
+            setTimeout(() => {
+                modalOverlay.classList.add('hidden');
+            }, 300);
         }
     </script>
 </body>
 </html>
-
