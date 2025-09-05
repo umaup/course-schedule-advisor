@@ -129,11 +129,20 @@
         }
         .register-day-bell {
             position: absolute;
-            top: 4px;
-            right: 4px;
-            color: #ef4444;
-            font-size: 0.8rem;
+            top: 2px;
+            right: 2px;
+            color: white;
+            font-size: 0.7rem;
             animation: bell-shake 1s infinite;
+            background-color: #ef4444; /* red-500 */
+            width: 1.2rem;
+            height: 1.2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
+            z-index: 10;
         }
         @keyframes bell-shake {
             0%, 100% { transform: rotate(0deg); }
@@ -155,7 +164,7 @@
             color: red;
             transform: translate(50%, -50%);
         }
-        
+       
         .conflict-course {
             border: 2px dashed #ef4444;
             background-color: #fecaca;
@@ -175,7 +184,7 @@
             .month-container h2 { font-size: 11pt; margin-bottom: 0.5rem; }
             .day-grid { gap: 2px; }
             .day-header { font-size: 7pt; padding-bottom: 0.25rem; }
-            .day-cell { padding-bottom: 0 !important; position: static; }
+            .day-cell { padding-bottom: 0 !important; position: static; height: auto; }
             .day-content { position: static; width: 100%; height: 25px; border: 1px solid #eee; color: black !important; font-size: 8pt; }
             .class-day { color: white !important; font-weight: bold; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
             .leave-day { border: 1px solid #ddd !important; }
@@ -189,11 +198,11 @@
         <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 md:mb-8">
             <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">互動式課程行事曆</h1>
             <p class="text-gray-600 text-sm sm:text-base mb-4">請在下方列表中勾選課程，或點擊月曆上的日期查看老師、地址等詳細資訊。</p>
-            
+           
             <div id="print-instruction" class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md mb-4" role="alert">
                 <p><strong class="font-bold">🖨️ 列印提示：</strong>請使用快捷鍵 <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd>+<kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">P</kbd> (Mac: <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Cmd</kbd>+<kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">P</kbd>)。在預覽中將<strong>版面設定為「橫向」</strong>，可將三個月並排列印。</p>
             </div>
-            
+           
             <div id="leave-info-panel" class="hidden bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-md mb-4 no-print">
                 <p class="font-bold">💡 請假時數提醒</p>
                 <div id="leave-message" class="text-sm mt-2 space-y-3"></div>
@@ -208,7 +217,7 @@
 
         <div id="course-selection-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"></div>
         <div id="calendar-view" class="calendar-grid"></div>
-        
+       
         <div id="info-panel" class="mt-8 bg-white rounded-xl shadow-lg p-4 sm:p-6 hidden opacity-0 transform -translate-y-4 no-print">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg sm:text-xl font-bold text-gray-800">課程詳細資訊</h2>
@@ -217,7 +226,7 @@
             <div id="info-panel-content" class="mt-4"></div>
         </div>
     </div>
-    
+   
     <!-- Notification Modal -->
     <div id="modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden opacity-0 no-print">
         <div id="notification-modal" class="modal-content bg-white p-6 rounded-lg shadow-lg w-11/12 md:w-1/3 transform scale-95 transition-all duration-300">
@@ -234,9 +243,24 @@
 
     <script>
         // --- 課程資料 ---
+        // 註解：儲存所有課程詳細資訊的陣列。
+        // id: 課程唯一識別碼
+        // name: 課程名稱
+        // teacher: 授課老師
+        // start/end: 課程起訖日期 (民國年)
+        // days: 每週上課日 (例如 "Saturday")
+        // excludeDates: 需要排除的特定不上課日期 (民國年)
+        // specificDates: 只在特定日期上課 (民國年)，用於不規律課程
+        // time: 上課時間
+        // color: 在日曆上顯示的顏色
+        // address: 上課地點
+        // capacity: 人數上限
+        // hours: 總時數
+        // registered: 是否已報名 (true/false)
+        // registerStart/registerEnd: 報名起訖時間 (民國年)
         const courses = [
             { id: "c3", name: "AI Agent智能助理開發實作班第01期", teacher: "馬恩奇老師", start: "114/08/24", end: "114/09/28", days: ["Sunday"], time: "09:00~12:00, 13:00~17:00", color: "#fb923c", address: "700002臺南市中西區中正路240號六樓(王者會議室)", capacity: "20人", hours: 42, registered: true },
-            { id: "c7", name: "職場情境日語與文法應用班第02期", teacher: "陳昭芬老師", start: "114/09/06", end: "114/12/27", days: ["Saturday"], time: "09:00~12:00", color: "#6366f1", address: "70047臺南市中西區大埔街50號2樓(台南市總工會2樓會議室)", capacity: "20人", hours: 45, registered: true },
+            { id: "c7", name: "職場情境日語與文法應用班第02期", teacher: "陳昭芬老師", start: "114/09/06", end: "114/12/27", days: ["Saturday"], time: "09:00~12:00", color: "#6366f1", address: "70047臺南市中西區大埔街50號2樓(台南市總工會2樓會議室)", capacity: "20人", hours: 45, registered: true, excludeDates: ["114/10/11", "114/10/25"] },
             { id: "c4", name: "商務日語會話實務班第01期", teacher: "林佩樺老師、山本弘幸老師", start: "114/09/18", end: "114/12/18", days: ["Thursday"], time: "18:30~21:30", color: "#a78bfa", address: "70143臺南市東區長榮路一段225號B1(樹德科技大學台南分部(B教室))", capacity: "20人", hours: 42, registered: true },
             { id: "c10", name: "CANVA質感設計班第02期", teacher: "張巍馨老師", start: "114/11/11", end: "115/01/06", days: ["Tuesday"], time: "18:30~21:30", color: "#f87171", address: "70041臺南市中西區西門路2段48號1樓(訓練教室B)", capacity: "20人", hours: 24, registerStart: "114/10/12 12:00", registerEnd: "114/11/08 18:00" },
             { id: "c9", name: "Python大數據分析與網路爬蟲實務班第02期", teacher: "劉哲宏老師", start: "115/01/07", end: "115/04/15", days: ["Wednesday"], time: "18:30~21:30", color: "#4ade80", address: "70143臺南市東區長榮路1段225號B1(樹德科技大學台南分部-(電腦教室))", capacity: "26人", hours: 42, registerStart: "114/12/08 12:00", registerEnd: "115/01/04 18:00" },
@@ -247,22 +271,33 @@
             return dateA - dateB;
         });
 
+        // --- 請假資料 ---
+        // 註解：以課程 ID 為 key，儲存每個課程的請假日期陣列。
         const leaveData = {
             "c7": ["114/09/13"], "c3": ["114/09/14"],
         };
-        const weekDayHeaders = ['日', '一', '二', '三', '四', '五', '六'];
-        const dayOfWeekMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+        // --- 常數定義 ---
+        const weekDayHeaders = ['日', '一', '二', '三', '四', '五', '六']; // 日曆星期標頭
+        const dayOfWeekMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; // 用於將 getDay() 的回傳值 (0-6) 對應到星期名稱
+
+        // --- 工具函數：民國年轉西元年 ---
+        // 註解：將 "114/09/06" 格式的民國年日期字串轉換為 JavaScript 的 Date 物件。
         function rocToDate(rocDateStr) {
             const [year, month, day] = rocDateStr.split('/').map(Number);
             return new Date(year + 1911, month - 1, day);
         }
-        
+       
+        // --- 工具函數：獲取報名日期 ---
+        // 註解：從課程物件中提取報名開始日期，並轉換為 'YYYY-MM-DD' 格式。
         function getRegisterDate(course) {
             if (!course.registerStart) return null;
             const dateStr = course.registerStart.split(' ')[0];
             return rocToDate(dateStr).toISOString().split('T')[0];
         }
 
+        // --- DOM 元素獲取 ---
+        // 註解：預先獲取所有需要操作的 HTML 元素，提升效能。
         const courseSelectionListEl = document.getElementById('course-selection-list');
         const calendarViewEl = document.getElementById('calendar-view');
         const infoPanel = document.getElementById('info-panel');
@@ -275,25 +310,34 @@
         const modalOverlay = document.getElementById('modal-overlay');
         const modalContentText = document.getElementById('modal-content-text');
         const closeBtnModal = document.getElementById('close-modal-btn');
-        let selectedCourses = new Set();
-        let classSchedule = {};
-        let lastSelectedDay = null;
+        
+        // --- 狀態變數 ---
+        let selectedCourses = new Set(); // 儲存用戶勾選的課程 ID
+        let classSchedule = {}; // 以日期 'YYYY-MM-DD' 為 key，儲存當天所有課程的物件
+        let lastSelectedDay = null; // 記錄上一個被點擊的日曆日期元素
 
+        // --- 主程式入口 ---
+        // 註解：當 HTML 文件載入完成後，執行初始化函數。
         document.addEventListener('DOMContentLoaded', function () {
-            buildClassSchedule();
-            renderCourseSelectionList();
-            renderCalendarView();
-            setupEventListeners();
+            buildClassSchedule();      // 建立課程時間表
+            renderCourseSelectionList(); // 渲染課程勾選列表
+            renderCalendarView();      // 渲染日曆
+            setupEventListeners();     // 設定所有事件監聽器
         });
 
+        // --- 函數：獲取課程的請假日期 ---
+        // 註解：根據課程 ID，返回其所有請假日期 ('YYYY-MM-DD' 格式的陣列)。
         function getLeaveDatesForCourse(courseId) {
             return (leaveData[courseId] || []).map(d => rocToDate(d).toISOString().split('T')[0]);
         }
-        
+       
+        // --- 函數：建立課程時間表 ---
+        // 註解：遍歷所有課程，將每一天的上課資訊填入 classSchedule 物件中。
         function buildClassSchedule() {
             classSchedule = {};
             courses.forEach(course => {
                 if (course.specificDates) {
+                    // 處理不規律日期的課程
                     course.specificDates.forEach(dateStr => {
                         const date = rocToDate(dateStr);
                         const dateString = date.toISOString().split('T')[0];
@@ -301,15 +345,20 @@
                         classSchedule[dateString].push(course);
                     });
                 } else {
+                    // 處理規律週期的課程
                     const courseStart = rocToDate(course.start);
                     const courseEnd = rocToDate(course.end);
+                    const excludeDatesForCourse = (course.excludeDates || []).map(d => rocToDate(d).toISOString().split('T')[0]);
                     let currentDate = new Date(courseStart);
                     while (currentDate <= courseEnd) {
                         const dayName = dayOfWeekMap[currentDate.getDay()];
                         if (course.days.includes(dayName)) {
                             const dateString = currentDate.toISOString().split('T')[0];
-                            if (!classSchedule[dateString]) classSchedule[dateString] = [];
-                            classSchedule[dateString].push(course);
+                            // 如果不是需要排除的日期，才加入課表
+                            if (!excludeDatesForCourse.includes(dateString)) {
+                                if (!classSchedule[dateString]) classSchedule[dateString] = [];
+                                classSchedule[dateString].push(course);
+                            }
                         }
                         currentDate.setDate(currentDate.getDate() + 1);
                     }
@@ -317,27 +366,28 @@
             });
         }
 
+        // --- 函數：渲染課程勾選列表 ---
+        // 註解：根據 courses 陣列動態生成課程選擇列表的 HTML。
         function renderCourseSelectionList() {
             const conflictingCourseIds = findConflicts(Array.from(selectedCourses));
-            
+           
             courseSelectionListEl.innerHTML = courses.map(course => {
                 const isRegistered = course.registered;
                 let courseInfo = `<p class="mt-1 text-xs text-gray-500">上課日期：${course.start} ~ ${course.end} | 總時數：${course.hours} 小時</p>`;
                 let bellIcon = '';
                 let conflictClass = '';
-                let conflictLabel = '';
                 let leaveInfoHTML = '';
                 let conflictInfoHTML = '';
 
-                // Handle registration info for courses not yet registered
+                // 處理尚未報名課程的報名資訊和倒數計時
                 if (!isRegistered) {
                     const registerStart = rocToDate(course.registerStart.split(' ')[0]);
                     const today = new Date();
                     const diffTime = registerStart.getTime() - today.getTime();
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    const countdownText = diffDays > 0 ? `(倒數 ${diffDays} 天開放)` : '(已開放)';
+                    const countdownText = diffDays > 0 ? `(<span class="text-blue-600 font-semibold">倒數 ${diffDays} 天開放</span>)` : '(<span class="text-green-600 font-semibold">已開放</span>)';
                     courseInfo += `<p class="mt-1 text-xs text-gray-500">報名時間：<strong class="text-blue-600">${course.registerStart.split(' ')[0]} ${course.registerStart.split(' ')[1]}</strong> ${countdownText} | 可請假上限：${(course.hours / 5).toFixed(1)} 小時</p>`;
-                    
+                   
                     bellIcon = `
                         <div class="notification-bell cursor-pointer" data-course-id="${course.id}">
                             <i class="fa-solid fa-bell text-red-500"></i>
@@ -345,17 +395,16 @@
                         </div>
                     `;
                 } else {
-                     courseInfo += `<p class="mt-1 text-xs text-gray-500">總時數：${course.hours} 小時 | 可請假上限：${(course.hours / 5).toFixed(1)} 小時</p>`;
+                    courseInfo += `<p class="mt-1 text-xs text-gray-500">總時數：${course.hours} 小時 | 可請假上限：${(course.hours / 5).toFixed(1)} 小時</p>`;
                 }
 
-
-                // Handle leave info
+                // 處理請假資訊
                 const sessionHours = calculateSessionHours(course.time);
                 const totalLeaveHours = (leaveData[course.id] || []).length * sessionHours;
                 const remainingLeaveHours = (course.hours / 5) - totalLeaveHours;
                 const leaveStatusColor = remainingLeaveHours < 0 ? 'text-red-500' : 'text-green-500';
 
-                // Display leave info for registered courses that have leave data
+                // 如果已報名且有請假紀錄，則顯示
                 if (isRegistered && totalLeaveHours > 0) {
                     leaveInfoHTML = `
                         <p class="mt-2 text-xs text-gray-600 space-y-1">
@@ -364,8 +413,8 @@
                         </p>
                     `;
                 }
-                
-                // Handle conflicts for selected and non-selected courses
+               
+                // 處理衝堂資訊
                 const conflictingWith = [];
                 const selectedCourseObjects = Array.from(selectedCourses).map(id => courses.find(c => c.id === id));
                 selectedCourseObjects.forEach(selectedCourse => {
@@ -383,9 +432,10 @@
                     }
                 }
 
+                // 回傳最終的 HTML 結構
                 return `
-                    <label for="checkbox-${course.id}" class="flex items-center p-3 bg-white rounded-lg shadow-sm cursor-pointer hover:bg-gray-50 ${conflictClass}">
-                        <input type="checkbox" id="checkbox-${course.id}" data-course-id="${course.id}" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${selectedCourses.has(course.id) ? 'checked' : ''}>
+                    <label for="checkbox-${course.id}" class="flex items-start p-3 bg-white rounded-lg shadow-sm cursor-pointer hover:bg-gray-50 ${conflictClass}">
+                        <input type="checkbox" id="checkbox-${course.id}" data-course-id="${course.id}" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-0.5">
                         <div class="ml-3 text-sm font-medium text-gray-700 flex flex-col w-full">
                             <div class="flex items-center">
                                 ${bellIcon}
@@ -401,25 +451,35 @@
             }).join('');
         }
 
+        // --- 函數：渲染日曆視圖 ---
+        // 註解：動態生成所有月份的日曆 HTML。
         function renderCalendarView() {
+            // 獲取當前日期，並將時間設為午夜，以便日期比較
             const today = new Date();
             today.setHours(0, 0, 0, 0);
+            
+            // 提取所有課程的報名日期
             const registerDates = courses.filter(c => c.registerStart).map(c => rocToDate(c.registerStart.split(' ')[0]).toISOString().split('T')[0]);
 
+            // 清空日曆容器
             calendarViewEl.innerHTML = '';
-            
-            // Start from 2025/09/01 (current date in the provided data)
-            const startYear = 2025;
-            const startMonth = 8; // September is month 8 in JS Date object
+           
+            // --- 修改：動態設定日曆的開始月份 ---
+            // 以今天的年份和月份作為日曆的起始點
+            const startYear = today.getFullYear();
+            const startMonth = today.getMonth();
 
-            // Find the last date of all courses to determine the end of the calendar
+            // 找出所有課程中最晚的結束日期，以確定日曆的結束點
             const allDates = courses.flatMap(c => {
                 if (c.specificDates) return c.specificDates.map(d => rocToDate(d));
                 return [rocToDate(c.start), rocToDate(c.end)];
             });
-            const endDate = allDates.length > 0 ? new Date(Math.max.apply(null, allDates)) : new Date(startYear, startMonth);
-            
+            const endDate = allDates.length > 0 ? new Date(Math.max.apply(null, allDates)) : new Date(startYear, startMonth + 5);
+           
+            // 從當前月份的第一天開始生成日曆
             let currentMonthDate = new Date(startYear, startMonth, 1);
+
+            // 迴圈生成每個月的日曆，直到所有課程結束
             while (currentMonthDate <= endDate) {
                 const year = currentMonthDate.getFullYear();
                 const month = currentMonthDate.getMonth();
@@ -430,19 +490,19 @@
                     <div class="day-grid">`;
 
                 const firstDayOfMonth = new Date(year, month, 1).getDay();
-                monthHTML += `<div></div>`.repeat(firstDayOfMonth);
+                monthHTML += `<div class="day-cell"></div>`.repeat(firstDayOfMonth);
 
                 for (let i = 1; i <= new Date(year, month + 1, 0).getDate(); i++) {
                     const date = new Date(year, month, i);
                     const dateString = date.toISOString().split('T')[0];
                     const scheduledClasses = classSchedule[dateString] || [];
-                    const isLeaveDay = scheduledClasses.some(c => getLeaveDatesForCourse(c.id).includes(dateString));
                     const isRegisterDay = registerDates.includes(dateString);
                     
-                    let dayHTML = '<div class="day-cell">';
-                    
-                    if (scheduledClasses.length > 0 || isRegisterDay) {
+                    let dayContentHTML;
+
+                    if (scheduledClasses.length > 0) {
                         let backgroundStyle = '', finalClasses = ['day-content', 'class-day'], tooltipText = [];
+                        const isLeaveDay = scheduledClasses.some(c => getLeaveDatesForCourse(c.id).includes(dateString));
                         if (isLeaveDay) finalClasses.push('leave-day');
                         if (date < today) finalClasses.push('past-day');
                         
@@ -451,19 +511,20 @@
                         else if (dayCourses.length > 1) backgroundStyle = `background: linear-gradient(135deg, ${dayCourses[0].color} 50%, ${dayCourses[1].color} 50%);`;
 
                         tooltipText = scheduledClasses.map(c => c.name.split('第')[0]);
-                        dayHTML += `<div class="${finalClasses.join(' ')}" style="${backgroundStyle}" data-date="${dateString}">
-                                        <span class="day-number">${i}</span>
-                                        <div class="tooltip">${tooltipText.join('<br>')}</div>
-                                    </div>`;
+                        dayContentHTML = `<div class="${finalClasses.join(' ')}" style="${backgroundStyle}" data-date="${dateString}">
+                                            <span class="day-number">${i}</span>
+                                            <div class="tooltip">${tooltipText.join('<br>')}</div>
+                                        </div>`;
                     } else {
-                        dayHTML += `<div class="day-content"><span class="day-number">${i}</span></div>`;
+                        dayContentHTML = `<div class="day-content"><span class="day-number">${i}</span></div>`;
                     }
 
+                    let dayHTML = `<div class="day-cell">${dayContentHTML}`;
                     if (isRegisterDay) {
-                        dayHTML = dayHTML.replace('</div class="day-cell">', `<i class="fas fa-bell register-day-bell"></i></div>`);
+                        dayHTML += `<i class="fas fa-bell register-day-bell"></i>`;
                     }
-
-                    monthHTML += dayHTML + '</div>';
+                    dayHTML += `</div>`;
+                    monthHTML += dayHTML;
                 }
 
                 monthContainer.innerHTML = monthHTML + '</div>';
@@ -472,20 +533,27 @@
             }
         }
 
+        // --- 函數：設定事件監聽器 ---
+        // 註解：統一管理頁面中所有的事件監聽，例如點擊、勾選等。
         function setupEventListeners() {
+            // 監聽課程列表的勾選事件
             courseSelectionListEl.addEventListener('change', (e) => {
                 if (e.target.type !== 'checkbox') return;
                 const courseId = e.target.dataset.courseId;
                 e.target.checked ? selectedCourses.add(courseId) : selectedCourses.delete(courseId);
                 updateSelectionState();
             });
+            
+            // 監聽日曆上日期的點擊事件
             calendarViewEl.addEventListener('click', (e) => {
                 const dayElement = e.target.closest('.class-day');
                 if (dayElement) showInfoPanel(dayElement.dataset.date, dayElement);
             });
-            closeInfoPanelBtn.addEventListener('click', hideInfoPanel);
             
-            // Add click listener for notification bells
+            // 監聽資訊面板的關閉按鈕點擊事件
+            closeInfoPanelBtn.addEventListener('click', hideInfoPanel);
+           
+            // 監聽課程列表中提醒鈴鐺的點擊事件
             courseSelectionListEl.addEventListener('click', (e) => {
                 const bellElement = e.target.closest('.notification-bell');
                 if (bellElement) {
@@ -496,6 +564,8 @@
                     }
                 }
             });
+
+            // 監聽彈窗的關閉按鈕與遮罩層點擊事件
             closeBtnModal.addEventListener('click', closeModal);
             modalOverlay.addEventListener('click', (e) => {
                 if (e.target.id === 'modal-overlay') {
@@ -503,7 +573,9 @@
                 }
             });
         }
-        
+       
+        // --- 函數：計算單堂課時數 ---
+        // 註解：根據 "09:00~12:00, 13:00~17:00" 格式的時間字串，計算總時數。
         function calculateSessionHours(timeStr) {
             return timeStr.split(',').reduce((total, interval) => {
                 const [start, end] = interval.trim().split('~').map(t => {
@@ -513,7 +585,9 @@
                 return total + (Math.abs(end - start));
             }, 0);
         }
-        
+       
+        // --- 函數：解析時間字串 ---
+        // 註解：將時間字串解析為以分鐘為單位的起始和結束時間物件陣列，方便比較。
         function parseTime(timeStr) {
             return timeStr.split(',').map(interval => {
                 const [start, end] = interval.trim().split('~').map(t => {
@@ -524,10 +598,12 @@
             });
         }
 
+        // --- 函數：檢查兩門課程是否衝堂 ---
+        // 註解：比較兩門課程的上課日期和時間，判斷是否有重疊。
         function hasConflict(course1, course2) {
             const dates1 = course1.specificDates ? course1.specificDates.map(d => rocToDate(d).toISOString().split('T')[0]) : Object.keys(classSchedule).filter(date => classSchedule[date].some(c => c.id === course1.id));
             const dates2 = course2.specificDates ? course2.specificDates.map(d => rocToDate(d).toISOString().split('T')[0]) : Object.keys(classSchedule).filter(date => classSchedule[date].some(c => c.id === course2.id));
-            
+           
             const sharedDates = dates1.filter(date => dates2.includes(date));
             if (sharedDates.length === 0) return false;
 
@@ -537,18 +613,20 @@
                 for (const t1 of times1) {
                     for (const t2 of times2) {
                         if (Math.max(t1.start, t2.start) < Math.min(t1.end, t2.end)) {
-                            return true;
+                            return true; // 時間有重疊，衝堂
                         }
                     }
                 }
             }
-            return false;
+            return false; // 沒有衝堂
         }
 
+        // --- 函數：找出所有衝堂的課程 ---
+        // 註解：從已選擇的課程中，找出所有時間互相衝突的課程 ID。
         function findConflicts(courseIds) {
             const courseObjects = courseIds.map(id => courses.find(c => c.id === id));
             const conflicts = new Set();
-            
+           
             for (let i = 0; i < courseObjects.length; i++) {
                 for (let j = i + 1; j < courseObjects.length; j++) {
                     if (hasConflict(courseObjects[i], courseObjects[j])) {
@@ -560,10 +638,12 @@
             return Array.from(conflicts);
         }
 
+        // --- 函數：更新勾選狀態與衝突警告 ---
+        // 註解：當用戶勾選或取消勾選課程時，重新計算衝堂並更新 UI 顯示。
         function updateSelectionState() {
             const conflictingCourseIds = findConflicts(Array.from(selectedCourses));
             const hasConflicts = conflictingCourseIds.length > 0;
-            
+           
             if (hasConflicts) {
                 const conflictDetails = conflictingCourseIds.map(id => {
                     const course = courses.find(c => c.id === id);
@@ -573,10 +653,12 @@
             }
 
             conflictWarningEl.classList.toggle('hidden', !hasConflicts);
-            renderCourseSelectionList();
-            updateLeaveInfo();
+            renderCourseSelectionList(); // 重新渲染課程列表以顯示衝突訊息
+            updateLeaveInfo(); // 更新請假面板
         }
 
+        // --- 函數：更新請假資訊面板 ---
+        // 註解：根據用戶勾選的課程，計算並顯示請假時數統計。
         function updateLeaveInfo() {
             if (selectedCourses.size === 0) {
                 leaveInfoPanelEl.classList.add('hidden');
@@ -585,7 +667,7 @@
 
             let messages = [];
             let hasLeave = false;
-            
+           
             selectedCourses.forEach(courseId => {
                 const course = courses.find(c => c.id === courseId);
                 const courseLeaveDates = leaveData[courseId] || [];
@@ -610,57 +692,63 @@
                     </div>`);
             });
 
-            leaveMessageEl.innerHTML = messages.join('');
+            leaveMessageEl.innerHTML = messages.join('<hr class="my-2 border-yellow-200">');
             leaveInfoPanelEl.classList.toggle('hidden', !hasLeave);
         }
 
+        // --- 函數：顯示課程詳細資訊面板 ---
+        // 註解：當用戶點擊日曆上的日期時，顯示當天的詳細課程資訊。
         function showInfoPanel(dateString, dayElement) {
             if (lastSelectedDay) lastSelectedDay.classList.remove('day-selected');
             dayElement.classList.add('day-selected');
             lastSelectedDay = dayElement;
 
-            const classes = classSchedule[dateString];
+            const classes = classSchedule[dateString] || [];
             const date = new Date(dateString);
             const formattedDate = date.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric' });
-            
+           
             let contentHTML = `<p class="text-gray-600 mb-4">日期：${formattedDate}</p>`;
-            classes.forEach(course => {
-                const isLeave = getLeaveDatesForCourse(course.id).includes(dateString);
-                const registerStartROC = course.registerStart?.split(' ')[0].split('/') || [];
-                const registerEndROC = course.registerEnd?.split(' ')[0].split('/') || [];
-                const registerStartDisplay = registerStartROC.length > 0 ? `${parseInt(registerStartROC[0])}年${parseInt(registerStartROC[1])}月${parseInt(registerStartROC[2])}日 ${course.registerStart.split(' ')[1]}` : '已報名';
-                const registerEndDisplay = registerEndROC.length > 0 ? `~ ${parseInt(registerEndROC[0])}年${parseInt(registerEndROC[1])}月${parseInt(registerEndROC[2])}日 ${course.registerEnd.split(' ')[1]}` : '';
+            if (!classes || classes.length === 0) {
+                 contentHTML += `<p class="text-gray-500">這天沒有課程。</p>`
+            } else {
+                classes.forEach(course => {
+                    const isLeave = getLeaveDatesForCourse(course.id).includes(dateString);
+                    const registerStartROC = course.registerStart?.split(' ')[0].split('/') || [];
+                    const registerEndROC = course.registerEnd?.split(' ')[0].split('/') || [];
+                    const registerStartDisplay = registerStartROC.length > 0 ? `${parseInt(registerStartROC[0])}年${parseInt(registerStartROC[1])}月${parseInt(registerStartROC[2])}日 ${course.registerStart.split(' ')[1]}` : '已報名';
+                    const registerEndDisplay = registerEndROC.length > 0 ? `~ ${parseInt(registerEndROC[0])}年${parseInt(registerEndROC[1])}月${parseInt(registerEndROC[2])}日 ${course.registerEnd.split(' ')[1]}` : '';
 
-                let leaveInfoHTML = '';
-                if (isLeave) {
-                    const sessionHours = calculateSessionHours(course.time);
-                    const totalLeaveHours = (leaveData[course.id] || []).length * sessionHours;
-                    const maxLeaveHours = course.hours / 5;
-                    const remainingLeaveHours = maxLeaveHours - totalLeaveHours;
-                    leaveInfoHTML = `<div class="mt-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded-md text-sm space-y-1">
-                                <p class="font-bold flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>請假時數說明</p>
-                                <p>時數上限: <span class="font-semibold text-blue-700">${maxLeaveHours.toFixed(1)} 小時</span></p>
-                                <p>本次請假: <span class="font-semibold">${sessionHours.toFixed(1)} 小時</span></p>
-                                <p>累計請假: <span class="font-semibold ${totalLeaveHours > maxLeaveHours ? 'text-red-600' : ''}">${totalLeaveHours.toFixed(1)} 小時</span></p>
-                                <p>剩餘時數: <span class="font-bold ${remainingLeaveHours < 0 ? 'text-red-600' : 'text-green-700'}">${remainingLeaveHours.toFixed(1)} 小時</span></p>
-                            </div>`;
-                }
+                    let leaveInfoHTML = '';
+                    if (isLeave) {
+                        const sessionHours = calculateSessionHours(course.time);
+                        const totalLeaveHours = (leaveData[course.id] || []).length * sessionHours;
+                        const maxLeaveHours = course.hours / 5;
+                        const remainingLeaveHours = maxLeaveHours - totalLeaveHours;
+                        leaveInfoHTML = `<div class="mt-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded-md text-sm space-y-1">
+                                    <p class="font-bold flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>請假時數說明</p>
+                                    <p>時數上限: <span class="font-semibold text-blue-700">${maxLeaveHours.toFixed(1)} 小時</span></p>
+                                    <p>本次請假: <span class="font-semibold">${sessionHours.toFixed(1)} 小時</span></p>
+                                    <p>累計請假: <span class="font-semibold ${totalLeaveHours > maxLeaveHours ? 'text-red-600' : ''}">${totalLeaveHours.toFixed(1)} 小時</span></p>
+                                    <p>剩餘時數: <span class="font-bold ${remainingLeaveHours < 0 ? 'text-red-600' : 'text-green-700'}">${remainingLeaveHours.toFixed(1)} 小時</span></p>
+                                </div>`;
+                    }
 
-                contentHTML += `
-                    <div class="border-l-4 p-4 rounded-r-lg mb-3" style="border-color: ${course.color}; background-color: ${course.color}1A;">
-                        <p class="font-bold text-gray-900 flex items-center">${course.name}${isLeave ? '<span class="ml-2 bg-yellow-200 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">已請假</span>' : ''}</p>
-                        <div class="mt-2 text-sm text-gray-700 space-y-1">
-                            <p><strong class="font-semibold">上課日期：</strong>${course.start} ~ ${course.end}</p>
-                            <p><strong class="font-semibold">上課時間：</strong>${course.time}</p>
-                            <p><strong class="font-semibold">授課老師：</strong>${course.teacher}</p>
-                            <p><strong class="font-semibold">上課地址：</strong>${course.address}</p>
-                            <p><strong class="font-semibold">總訓練時數：</strong>${course.hours} 小時</p>
-                            <p><strong class="font-semibold">可請假上限：</strong>${(course.hours / 5).toFixed(1)} 小時</p>
-                            <p><strong class="font-semibold">報名日期：</strong>${registerStartDisplay} ${registerEndDisplay}</p>
-                        </div>
-                        ${leaveInfoHTML}
-                    </div>`;
-            });
+                    contentHTML += `
+                        <div class="border-l-4 p-4 rounded-r-lg mb-3" style="border-color: ${course.color}; background-color: ${course.color}1A;">
+                            <p class="font-bold text-gray-900 flex items-center">${course.name}${isLeave ? '<span class="ml-2 bg-yellow-200 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">已請假</span>' : ''}</p>
+                            <div class="mt-2 text-sm text-gray-700 space-y-1">
+                                <p><strong class="font-semibold">上課日期：</strong>${course.start} ~ ${course.end}</p>
+                                <p><strong class="font-semibold">上課時間：</strong>${course.time}</p>
+                                <p><strong class="font-semibold">授課老師：</strong>${course.teacher}</p>
+                                <p><strong class="font-semibold">上課地址：</strong>${course.address}</p>
+                                <p><strong class="font-semibold">總訓練時數：</strong>${course.hours} 小時</p>
+                                <p><strong class="font-semibold">可請假上限：</strong>${(course.hours / 5).toFixed(1)} 小時</p>
+                                <p><strong class="font-semibold">報名日期：</strong>${registerStartDisplay} ${registerEndDisplay}</p>
+                            </div>
+                            ${leaveInfoHTML}
+                        </div>`;
+                });
+            }
 
             infoPanelContent.innerHTML = contentHTML;
             infoPanel.classList.remove('hidden');
@@ -670,33 +758,39 @@
             }, 10);
         }
 
+        // --- 函數：隱藏課程詳細資訊面板 ---
+        // 註解：關閉詳細資訊面板。
         function hideInfoPanel() {
             if (lastSelectedDay) { lastSelectedDay.classList.remove('day-selected'); lastSelectedDay = null; }
             infoPanel.classList.add('opacity-0', '-translate-y-4');
             setTimeout(() => infoPanel.classList.add('hidden'), 300);
         }
 
+        // --- 函數：顯示報名提醒彈窗 ---
+        // 註解：當用戶點擊課程列表中的提醒鈴鐺時，顯示報名倒數彈窗。
         function showNotificationModal(course) {
             const registerStart = rocToDate(course.registerStart.split(' ')[0]);
             const registerStartROC = course.registerStart.split(' ')[0].split('/');
             const registerStartDisplay = `${parseInt(registerStartROC[0])}年${parseInt(registerStartROC[1])}月${parseInt(registerStartROC[2])}日`;
             const registerStartFull = `${registerStartDisplay} ${course.registerStart.split(' ')[1]}`;
-            
+           
             const today = new Date();
             const diffTime = registerStart.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
+           
             modalContentText.innerHTML = `
                 <p><strong>課程名稱：</strong>${course.name}</p>
                 <p><strong>報名時間：</strong>${registerStartFull}</p>
                 <p><strong>開放報名倒數：</strong><span class="font-bold text-red-600">${diffDays > 0 ? diffDays : 0}</span> 天</p>
             `;
-            
+           
             modalOverlay.classList.remove('hidden', 'opacity-0');
             modalOverlay.classList.add('flex', 'opacity-100');
             document.getElementById('notification-modal').classList.remove('scale-95');
         }
 
+        // --- 函數：關閉彈窗 ---
+        // 註解：關閉報名提醒彈窗。
         function closeModal() {
             modalOverlay.classList.add('opacity-0');
             document.getElementById('notification-modal').classList.add('scale-95');
@@ -707,3 +801,4 @@
     </script>
 </body>
 </html>
+
